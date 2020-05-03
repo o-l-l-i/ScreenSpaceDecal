@@ -1,4 +1,4 @@
-﻿// Screen Space Decal Shader by Olli S.
+// Screen Space Decal Shader by Olli S.
 Shader "Custom/ScreenSpaceDecal"
 {
     Properties
@@ -74,15 +74,13 @@ Shader "Custom/ScreenSpaceDecal"
                 o.uv = TRANSFORM_TEX(v.uv, _MainTex);
 
                 // CLIP SPACE / PROJECTION POSITION
-                // Multiply model-view-projection matrix with model/object space position
-                // Manual about float4 UnityObjectToClipPos(float3 pos):
+                // Manual:
+                // float4 UnityObjectToClipPos(float3 pos):
                 // Transforms a point from object space to the camera’s clip space in homogeneous coordinates
                 // This is the equivalent of mul(UNITY_MATRIX_MVP, float4(pos, 1.0)) and should be used in its place
                 o.vertex = UnityObjectToClipPos(v.vertex.xyz);
 
                 // SCREEN SPACE POSITION
-                // Calculate screen position of the vertex (we get a 2D location on screen surface)
-                // Used to sample depth texture on screen surface (uses screen UV of course, we can't use object UVs)
                 // Manual:
                 // float4 ComputeScreenPos (float4 clipPos)	Computes texture coordinate for doing a screenspace-mapped texture sample
                 // Input is clip space position
@@ -139,15 +137,25 @@ Shader "Custom/ScreenSpaceDecal"
                 // View space is 0-1, depth is 0-1, by multiplying the view ray position, we move it to the depth distance
                 // So we get position we see in the world, and not on the decal projector object's surface
                 float4 decalProjectionPos = float4(viewRay.xyz * depth, 1);
+
+                // TRANSFORM FROM VIEW TO WORLD SPACE
                 // Now transform the projection position from view/camera space to the world space
                 float3 worldSpacePos = mul(unity_CameraToWorld, decalProjectionPos).xyz;
+
+                // TRANSFORM FROM WORLD TO OBJECT SPACE
                 // Then transfer the surface hit world space position to the object's space
                 float3 objectPos = mul(unity_WorldToObject, float4(worldSpacePos, 1)).xyz;
-                // Apply stretching and backface cut off
+
+                // APPLY CUT OFF
+                // Apply stretching and backface cut off to avoid decal streaks
                 float sideStrechThreshold = 0.999 - _CutOff;
+
+                // NORMALS
                 // Calculate normals from screen space derivatives
                 // https://forum.unity.com/threads/flat-lighting-without-separate-smoothing-groups.280183/
                 float3 objectSpaceNormal = normalize(cross(ddx(objectPos), ddy(objectPos)));
+
+                // MASK
                 // Generate a mask from the derived normal
                 float mask = objectSpaceNormal.y > sideStrechThreshold ? 1.0 : 0.0;
 
