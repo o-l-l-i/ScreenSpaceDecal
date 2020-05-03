@@ -13,7 +13,7 @@ This was mainly a study project, where I wanted to force myself to learn a bit m
 ## Features
 
 - Screen space decal implementation.
-- Color filter for the splat.
+- Color filter for the decal.
 - Angle threshold to cut off streaks (user adjustable.)
 - I left verbose comments to the code in case someone wants to study how screen space decals can be implemented.
 - Developed on Unity 2018.4.12f1.
